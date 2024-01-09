@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
 import './App.css';
 import { loginOrSignup, verifyCode, authenticateToken, finishProfile } from './api/index';
 import Confetti from 'react-confetti';
