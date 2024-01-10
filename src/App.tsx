@@ -14,6 +14,7 @@ function App() {
   const [myGangId, setMyGangId] = useState('');
   const [user, setUser] = useState<any>({});
   const [currentTime, setCurrentTime] = useState('');
+  const [lastThreeMeals, setLastThreeMeals] = useState([]);
 
   const mealsEaten = [];
 
@@ -27,6 +28,8 @@ function App() {
         if (response.user) {
           setUser(response?.user);
           if (response?.user.isComplete === true) {
+            setLastThreeMeals(response?.lastThreeMeals);
+            console.log('ltm are', response?.lastThreeMeals);
             setPageState("Active");
             startClock();
           } else {
@@ -43,6 +46,37 @@ function App() {
     onLoad();
 
   }, [])
+
+  function formatTimestamp(timestamp: number): string {
+    const date = new Date(timestamp);
+    const now = new Date();
+    
+    // Function to format the date as AM/PM
+    const formatAMPM = (date: Date): string => {
+      let hours = date.getHours();
+      let minutes = date.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // hour '0' should be '12'
+      
+      // Create a formatted string for minutes
+      const formattedMinutes = minutes < 10 ? '0' + minutes.toString() : minutes.toString();
+
+      return hours + ':' + formattedMinutes + ' ' + ampm;
+    }
+
+    // Check if the date is today
+    if (date.setHours(0,0,0,0) === now.setHours(0,0,0,0)) {
+        return formatAMPM(date); // Return time in AM/PM format
+    } else {
+        // Calculate the difference in days
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return `${diffDays} day(s) ago`;
+    }
+  }
+
+
 
   const handleLoginOrSignup = async () => {
     if (phoneNumber.length < 9) {
@@ -86,6 +120,7 @@ function App() {
     if (response.message === "Success") {
       setPageState("Active");
       setUser(response?.user);
+
     }
 
   }
@@ -147,10 +182,10 @@ function App() {
           </div>
         )}
 
-        {!showEnterAccessCode && <button onClick={handleLoginOrSignup} className="rounded-lg w-1/2 p-2 bg-white shadow-lg shadow-orange-200 mt-8">
+        {!showEnterAccessCode && <button onClick={handleLoginOrSignup} className="rounded-lg w-1/2 p-2 bg-white shadow-lg transition duration-200 hover:bg-gray-200 hover:scale-95 shadow-orange-200 mt-8">
           <h3>Signup / Login</h3>
         </button>}
-        {showEnterAccessCode && <button onClick={handleSubmitCode} className="rounded-lg p-2 bg-white shadow-lg shadow-orange-200 mt-8">
+        {showEnterAccessCode && <button onClick={handleSubmitCode} className="rounded-lg p-2 bg-white shadow-lg transition duration-200 hover:bg-gray-200 hover:scale-95 shadow-orange-200 mt-8">
           <h3>Submit code</h3>
         </button>}
         {showEnterAccessCode && <div><button className="rounded-lg p-2 mt-2">
@@ -226,9 +261,17 @@ function App() {
 
       <h4 className="text-white mt-10 mb-4">Your last 3 meals</h4>
       <div className="grid grid-cols-3 gap-2">
-        <div className="p-2 border border-white rounded-lg text-white">N/A</div>
-        <div className="p-2 border border-white rounded-lg text-white">N/A</div>
-        <div className="p-2 border border-white rounded-lg text-white">N/A</div>
+        {lastThreeMeals.map((meal: any) => (
+          <div className="p-2 border border-b-4 flex flex-col border-white rounded-lg text-white">
+            <h2 className="text-white font-semibold">{meal.mealType}</h2>
+            <h2 className="text-white">{meal.calories} calories</h2>
+            <h2 className="text-white">{meal.protein}g of protein</h2>
+            
+            <h2 className="text-xs text-gray-200 mt-4">{formatTimestamp(meal.timeEaten)}</h2>
+
+          </div>
+        ))
+        }
 
       </div>
 
