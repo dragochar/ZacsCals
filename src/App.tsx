@@ -29,7 +29,7 @@ function App() {
         if (response.user) {
           setUser(response?.user);
           if (response?.user.isComplete === true) {
-            setRecentMeals(response?.lastRecentMeals);
+            setRecentMeals(response?.recentMeals);
             console.log('ltm are', response?.recentMeals);
             setPageState("Active");
             startClock();
@@ -50,6 +50,35 @@ function App() {
     onLoad();
 
   }, [])
+
+    // Helper function to format date into a day string
+  const getDayString = (date: any) => {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[date.getDay()];
+  };
+
+  // Function to restructure meals data
+  const structureMealsData = (meals: any) => {
+    return meals.reduce((acc: any, meal: any) => {
+      const mealDay = getDayString(new Date(meal.timeEaten));
+      if (!acc[mealDay]) {
+        acc[mealDay] = {};
+      }
+      if (!acc[mealDay][meal.mealType]) {
+        acc[mealDay][meal.mealType] = [];
+      }
+      acc[mealDay][meal.mealType].push(meal);
+      return acc;
+    }, {});
+  };
+
+  useEffect(() => {
+    if (recentMeals.length) {
+      setStructuredMeals(structureMealsData(recentMeals));
+    }
+  }, [recentMeals]);
+
+  const [structuredMeals, setStructuredMeals] = useState<any>({});
 
   function formatTimestamp(timestamp: number): string {
     const date = new Date(timestamp);
@@ -271,6 +300,26 @@ function App() {
     </div>
   );
 
+  const renderMeals = () => {
+    return Object.keys(structuredMeals).map(day => (
+      <div key={day} className="day-container">
+        <h3>{day}</h3>
+        {Object.keys(structuredMeals[day]).map(mealType => (
+          <div key={mealType} className="meal-type-container">
+            <h4>{mealType}</h4>
+            {structuredMeals[day][mealType].map((meal: any) => (
+              <div key={meal.id} className="meal-item">
+                <p>{meal.calories} calories</p>
+                <p>{meal.protein}g of protein</p>
+                <p>{formatTimestamp(meal.timeEaten)}</p>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    ));
+  };
+
   if (pageState==="Active") return (
     <div className={`App p-4 min-h-lvh bg-black ${showEnterAccessCode ? 'show-verification' : ''}`}>
       <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} numberOfPieces={100} />
@@ -282,20 +331,7 @@ function App() {
       <h2 className="text-white">It's<span className={`text-2xl mt-4 text-orange-200 font-extrabold mx-auto w-32 duration-200 transition-all ${currentTime ? 'opacity-100' : 'opacity-0'}`}> Breakfast </span>Time</h2>
 
       <h4 className="text-white mt-10 mb-4">Your last 3 meals</h4>
-      <div className="grid grid-cols-3 gap-2">
-        {recentMeals.map((meal: any) => (
-          <div className="p-2 border border-b-4 transition-all duration-200 hover:translate-y-0.5 hover:cursor-pointer hover:border-b-2 flex flex-col border-white rounded-lg text-white">
-            <h2 className="text-white font-semibold">{meal.mealType}</h2>
-            <h2 className="text-white">{meal.calories} calories</h2>
-            <h2 className="text-white">{meal.protein}g of protein</h2>
-            
-            <h2 className="text-xs text-gray-200 mt-4">{formatTimestamp(meal.timeEaten)}</h2>
-
-          </div>
-        ))
-        }
-
-      </div>
+      {renderMeals()}
 
       {/* <h4 className="text-white mt-10 mb-4">We'll text you next at 11:45 AM</h4> */}
 
