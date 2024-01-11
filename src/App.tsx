@@ -19,33 +19,35 @@ function App() {
 
   const mealsEaten = [];
 
+  const onLoad = async () => {
+
+    const localToken = await localStorage.getItem('token');
+    if (localToken) {
+      const response = await authenticateToken(localToken);
+      if (response.user) {
+        setUser(response?.user);
+        if (response?.user.isComplete === true) {
+          setRecentMeals(response?.recentMeals);
+          console.log('ltm are', response?.recentMeals);
+          setPageState("Active");
+          startClock();
+        } else {
+          setPageState("FinishProfile");
+        }
+
+      } else {
+        setPageState('Unauthenticated');
+        localStorage.removeItem('token');
+      }
+      return;
+    }
+    setPageState("Unauthenticated");
+
+  }
+
   useEffect(() => {
 
-    const onLoad = async () => {
-
-      const localToken = await localStorage.getItem('token');
-      if (localToken) {
-        const response = await authenticateToken(localToken);
-        if (response.user) {
-          setUser(response?.user);
-          if (response?.user.isComplete === true) {
-            setRecentMeals(response?.recentMeals);
-            console.log('ltm are', response?.recentMeals);
-            setPageState("Active");
-            startClock();
-          } else {
-            setPageState("FinishProfile");
-          }
-
-        } else {
-          setPageState('Unauthenticated');
-          localStorage.removeItem('token');
-        }
-        return;
-      }
-      setPageState("Unauthenticated");
-
-    }
+    
 
     onLoad();
 
@@ -143,6 +145,7 @@ function App() {
     if (response.message === 'Successful') {
       localStorage.setItem('token', response.token);
       setPageState("Active");
+      onLoad();
     } else if (response.message === 'FinishProfile') {
       localStorage.setItem('token', response.token);
       if (response?.threeGangs) {setThreeGangs(response?.threeGangs);}
