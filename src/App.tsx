@@ -15,6 +15,7 @@ function App() {
   const [user, setUser] = useState<any>({});
   const [currentTime, setCurrentTime] = useState('');
   const [lastThreeMeals, setLastThreeMeals] = useState([]);
+  const [threeGangs, setThreeGangs] = useState([]);
 
   const mealsEaten = [];
 
@@ -36,6 +37,9 @@ function App() {
             setPageState("FinishProfile");
           }
 
+        } else {
+          setPageState('Unauthenticated');
+          localStorage.removeItem('token');
         }
         return;
       }
@@ -101,12 +105,20 @@ function App() {
     if (response.message === 'Successful') {
       localStorage.setItem('token', response.token);
       setPageState("Active");
+    } else if (response.message === 'FinishProfile') {
+      localStorage.setItem('token', response.token);
+      if (response?.threeGangs) {setThreeGangs(response?.threeGangs);}
+      setPageState("FinishProfile");
     }
 
   };
 
+  const handleCreateNewGang = async () => {
+
+  }
+
   const handleFinishProfile = async () => {
-    if (myName.length < 0 || myProteinGoal.length < 0 || myCalorieGoal.length < 0 || myGangId.length < 0 ) {
+    if (myName.length < 0 || myProteinGoal.length < 0 || myCalorieGoal.length < 0 || myGangId === '' ) {
       alert("Please fill in all fields");
       return;
     }
@@ -148,7 +160,7 @@ function App() {
 
   if (pageState === "Unauthenticated") return (
     <div className={`App p-4 min-h-lvh bg-black ${showEnterAccessCode ? 'show-verification' : ''}`}>
-      <h4 className="text-5xl mb-2 text-white font-semibold">Zac's Cals</h4>
+      <h4 className="text-5xl mb-2 text-white font-semibold">{user?.name || "Zac"}'s Cals</h4>
       <h2 className="text-xs text-white font-semibold">{`Basically a calorie tracker with your boys`}</h2>
 
       <div className="mt-8">
@@ -182,7 +194,7 @@ function App() {
           </div>
         )}
 
-        {!showEnterAccessCode && <button onClick={handleLoginOrSignup} className="rounded-lg w-1/2 p-2 bg-white shadow-lg transition duration-200 hover:bg-gray-200 hover:scale-95 shadow-orange-200 mt-8">
+        {!showEnterAccessCode && <button onClick={handleLoginOrSignup} className="rounded-lg w-1/2 p-2 bg-white shadow-lg transition duration-200 hover:bg-gray-200 hover:scale-95 shadow-orange-200 hover:shadow-orange-300 mt-8">
           <h3>Signup / Login</h3>
         </button>}
         {showEnterAccessCode && <button onClick={handleSubmitCode} className="rounded-lg p-2 bg-white shadow-lg transition duration-200 hover:bg-gray-200 hover:scale-95 shadow-orange-200 mt-8">
@@ -230,21 +242,31 @@ function App() {
           }}
         ></input>
 
-        <input
-          placeholder="Your gang code (8 people per gang)"
-          className="rounded-lg mt-2 p-2 transition-all duration-200 hover:scale-95 hover:bg-slate-100"
-          value={myGangId}
-          onChange={(e) => {
-            setMyGangId(e.target.value);
-          }}
-        ></input>
-
-        <button onClick={handleFinishProfile} className="rounded-lg transition-all duration-200 hover:bg-slate-200 hover:scale-95 w-full p-2 bg-white shadow-inner mt-4">
-          <h3 className="font-semibold">Finish</h3>
-        </button>
-
 
       </div>
+
+      <h1 className="text-white text-2xl mb-2 text-center font-bold mt-8">Pick your gang</h1>
+
+
+      <div className="gang-container p-2 grid grid-cols-2">
+        {threeGangs.map((gang: any) => (
+          <div onClick={()=>{setMyGangId(gang?._id)}} className="p-8 flex flex-col gap-2 shadow-lg w-min mx-auto rounded-lg transition-all duration-200 hover:scale-95 border-white border mt-8">
+            <h2 className="text-white">{gang?.gangName}</h2>
+          </div>
+        ))
+
+        }
+        <div onClick={()=>{setMyGangId("NEW_GANG")}} className={`${myGangId==="NEW_GANG" ? 'border-yellow-300 font-bold border-2 shadow-orange-300 shadow-md' : ''} transition-all duration-200 hover:scale-95 cursor-pointer p-8 flex flex-col gap-2 shadow-lg w-min mx-auto rounded-lg border-white border mt-8`}>
+          <h2 className="text-white">Create new gang</h2>
+        </div>
+      
+          
+      </div>
+
+
+      <button onClick={handleFinishProfile} className="rounded-lg w-32 transition-all duration-200 hover:bg-slate-200 hover:scale-95 p-2 bg-white shadow-inner mt-4">
+          <h3 className="font-semibold">Finish</h3>
+      </button>
 
     </div>
   );
@@ -262,7 +284,7 @@ function App() {
       <h4 className="text-white mt-10 mb-4">Your last 3 meals</h4>
       <div className="grid grid-cols-3 gap-2">
         {lastThreeMeals.map((meal: any) => (
-          <div className="p-2 border border-b-4 flex flex-col border-white rounded-lg text-white">
+          <div className="p-2 border border-b-4 transition-all duration-200 hover:translate-y-0.5 hover:cursor-pointer hover:border-b-2 flex flex-col border-white rounded-lg text-white">
             <h2 className="text-white font-semibold">{meal.mealType}</h2>
             <h2 className="text-white">{meal.calories} calories</h2>
             <h2 className="text-white">{meal.protein}g of protein</h2>
@@ -275,8 +297,9 @@ function App() {
 
       </div>
 
-      <h4 className="text-white mt-10 mb-4">We'll text you next at 11:45 AM</h4>
+      {/* <h4 className="text-white mt-10 mb-4">We'll text you next at 11:45 AM</h4> */}
 
+      <h4 className="text-white mt-10 mb-4">Your gang</h4>
 
 
 

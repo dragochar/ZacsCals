@@ -55,3 +55,15 @@ export const authenticateToken = async (jwtToken: string) => {
     throw error;
   }
 };
+
+export const createGang = async (phoneNumber: string) => {
+  
+  try {
+
+    const response = await API.post('/zacs-cals/createNewGang', { phoneNumber: phoneNumber });
+    return response.data;
+
+  } catch (error) {
+    throw error;
+  }
+}
