@@ -56,11 +56,12 @@ export const authenticateToken = async (jwtToken: string) => {
   }
 };
 
-export const createGang = async (phoneNumber: string) => {
+
+export const deleteMeal = async (jwtToken: string, mealId: string) => {
   
   try {
 
-    const response = await API.post('/zacs-cals/createNewGang', { phoneNumber: phoneNumber });
+    const response = await API.post('/zacs-cals/deleteMeal', { token: jwtToken, mealId: mealId });
     return response.data;
 
   } catch (error) {
