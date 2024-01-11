@@ -14,7 +14,7 @@ function App() {
   const [myGangId, setMyGangId] = useState('');
   const [user, setUser] = useState<any>({});
   const [currentTime, setCurrentTime] = useState('');
-  const [lastThreeMeals, setLastThreeMeals] = useState([]);
+  const [recentMeals, setRecentMeals] = useState([]);
   const [threeGangs, setThreeGangs] = useState([]);
 
   const mealsEaten = [];
@@ -29,8 +29,8 @@ function App() {
         if (response.user) {
           setUser(response?.user);
           if (response?.user.isComplete === true) {
-            setLastThreeMeals(response?.lastThreeMeals);
-            console.log('ltm are', response?.lastThreeMeals);
+            setRecentMeals(response?.lastRecentMeals);
+            console.log('ltm are', response?.recentMeals);
             setPageState("Active");
             startClock();
           } else {
@@ -283,7 +283,7 @@ function App() {
 
       <h4 className="text-white mt-10 mb-4">Your last 3 meals</h4>
       <div className="grid grid-cols-3 gap-2">
-        {lastThreeMeals.map((meal: any) => (
+        {recentMeals.map((meal: any) => (
           <div className="p-2 border border-b-4 transition-all duration-200 hover:translate-y-0.5 hover:cursor-pointer hover:border-b-2 flex flex-col border-white rounded-lg text-white">
             <h2 className="text-white font-semibold">{meal.mealType}</h2>
             <h2 className="text-white">{meal.calories} calories</h2>
